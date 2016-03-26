@@ -500,22 +500,27 @@ Spectrum PathTracer::raytrace_pixel(size_t x, size_t y) {
 
   int num_samples = ns_aa;
 
-  // Vector2D p = Vector2D(0.5,0.5);
-  // return trace_ray(camera->generate_ray(p.x, p.y));
+  // reference:
+  // {
+  //   Vector2D p = Vector2D((double)x/frameBuffer.w, (double)y/frameBuffer.h);
+  //   return trace_ray(camera->generate_ray(p.x, p.y));
+  // }
 
-  Spectrum result = Spectrum(0.0f,0.0f,0.0f);
+  {
+    Spectrum result = Spectrum(0.0f,0.0f,0.0f);
 
-  if(num_samples==1){
-    result = trace_ray(camera->generate_ray((x + 0.5)/frameBuffer.w, (y + 0.5)/frameBuffer.h));
-  }
-  else{
-    for(int i=0;i<num_samples;i++){
-      Vector2D p = gridSampler->get_sample();
-      result += trace_ray(camera->generate_ray((x + p.x)/frameBuffer.w, (y + p.y)/frameBuffer.h));
+    if(num_samples==1){
+      result = trace_ray(camera->generate_ray((x + 0.5)/frameBuffer.w, (y + 0.5)/frameBuffer.h));
     }
-    result *= 1.0 / num_samples;
+    else{
+      for(int i=0;i<num_samples;i++){
+        Vector2D p = gridSampler->get_sample();
+        result += trace_ray(camera->generate_ray((x + p.x)/frameBuffer.w, (y + p.y)/frameBuffer.h));
+      }
+      result *= 1.0 / num_samples;
+    }
+    return result;
   }
-  return result;
 
 }
 
