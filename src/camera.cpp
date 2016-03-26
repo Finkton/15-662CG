@@ -115,7 +115,20 @@ Ray Camera::generate_ray(double x, double y) const {
   // compute position of the input sensor sample coordinate on the
   // canonical sensor plane one unit away from the pinhole.
 
-  return Ray(Vector3D(0, 0, 0), Vector3D(0, 0, 1));
+  double xc = (2*x-1)*tan(radians(hFov/2.0f));
+  double yc = (2*y-1)*tan(radians(vFov/2.0f));
+
+  // std::cout<<"tan: "<<radians(hFov/2.0f)<<" MI: "<< (hFov * M_PI / 180.0 / 2)<<std::endl;
+  // std::cout<<"tan: "<<radians(vFov/2.0f)<<" MI: "<< (vFov * M_PI / 180.0 / 2)<<std::endl;
+
+  Vector3D direction = c2w * Vector3D(xc,yc,-1);
+  direction.normalize();
+
+  Ray ray = Ray(this->pos,direction);
+  ray.min_t = 0;
+  ray.max_t = std::numeric_limits<double>::infinity();
+  // return Ray(Vector3D(0, 0, 0), Vector3D(0, 0, 1));
+  return ray;
 }
 
 
