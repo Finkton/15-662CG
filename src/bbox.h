@@ -21,6 +21,7 @@ struct BBox {
   Vector3D max;	    ///< min corner of the bounding box
   Vector3D min;	    ///< max corner of the bounding box
   Vector3D extent;  ///< extent of the bounding box (min -> max)
+  int size;
 
   /**
    * Constructor.
@@ -31,13 +32,14 @@ struct BBox {
     max = Vector3D(-INF_D, -INF_D, -INF_D);
     min = Vector3D( INF_D,  INF_D,  INF_D);
     extent = max - min;
+    size = 0;
   }
 
   /**
    * Constructor.
    * Creates a bounding box that includes a single point.
    */
-  BBox(const Vector3D& p) : min(p), max(p) { extent = max - min; }
+  BBox(const Vector3D& p) : min(p), max(p) { extent = max - min; size = 0;}
 
   /**
    * Constructor.
@@ -46,7 +48,7 @@ struct BBox {
    * \param max the max corner
    */
   BBox(const Vector3D& min, const Vector3D& max) :
-       min(min), max(max) { extent = max - min; }
+       min(min), max(max) { extent = max - min; size = 0;}
 
   /**
    * Constructor.
@@ -57,6 +59,7 @@ struct BBox {
     min = Vector3D(minX, minY, minZ);
     max = Vector3D(maxX, maxY, maxZ);
 		extent = max - min;
+    size = 0;
   }
 
   /**
@@ -74,6 +77,7 @@ struct BBox {
     max.y = std::max(max.y, bbox.max.y);
     max.z = std::max(max.z, bbox.max.z);
     extent = max - min;
+    ++size;
   }
 
   /**
@@ -91,6 +95,7 @@ struct BBox {
     max.y = std::max(max.y, p.y);
     max.z = std::max(max.z, p.z);
     extent = max - min;
+    ++size;
   }
 
   Vector3D centroid() const {

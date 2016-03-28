@@ -44,7 +44,7 @@ BBox Triangle::get_bbox() const {
 bool Triangle::intersect(const Ray& r) const {
 
   // TODO: implement ray-triangle intersection
-  std::cout<<"Start intersecting!"<<std::endl;
+  // std::cout<<"Start intersecting!"<<std::endl;
   Vector3D p0 = mesh->positions[v1];
   Vector3D p1 = mesh->positions[v2];
   Vector3D p2 = mesh->positions[v3];
@@ -103,9 +103,16 @@ bool Triangle::intersect(const Ray& r, Intersection *isect) const {
 
     if(u>0 && v>0 && u+v<1 && t>=r.min_t && t <= r.max_t){
       // std::cout<<"true!";
+      // t: the ray's t-value of the hit point
       isect->t = t;
+
+      // primitive: a pointer to the primitive that was hit
       isect->primitive = this;
+
+      // bsdf: a pointer to the surface bsdf at the hit point (obtained via mesh->get_bsdf())
       isect->bsdf = mesh->get_bsdf();
+
+      // n: the normal of the surface at the hit point.
       isect->n = (1-u-v) * mesh->normals[v1] + u*mesh->normals[v2] + v*mesh->normals[v3];
       isect->n.normalize();
       if (dot(isect->n, d) > 0) {

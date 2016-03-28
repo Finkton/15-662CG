@@ -33,6 +33,7 @@ struct BVHNode {
   BVHNode* r;     ///< right child node
 };
 
+
 /**
  * Bounding Volume Hierarchy for fast Ray - Primitive intersection.
  * Note that the BVHAccel is an Aggregate (A Primitive itself) that contains
@@ -53,7 +54,9 @@ class BVHAccel : public Aggregate {
    * \param primitives primitives to build from
    * \param max_leaf_size maximum number of primitives to be stored in leaves
    */
+
   BVHAccel(const std::vector<Primitive*>& primitives, size_t max_leaf_size = 4);
+  void buildTree(BVHNode *root, size_t start, size_t range, size_t max_leaf_size);
 
   /**
    * Destructor.
@@ -92,6 +95,7 @@ class BVHAccel : public Aggregate {
              false otherwise
    */
   bool intersect(const Ray& r, Intersection* i) const;
+  void find_closest_hit(Ray& r, BVHNode* node, Intersection* i);
 
   /**
    * Get BSDF of the surface material

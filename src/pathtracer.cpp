@@ -517,7 +517,7 @@ Spectrum PathTracer::raytrace_pixel(size_t x, size_t y) {
         Vector2D p = gridSampler->get_sample();
         result += trace_ray(camera->generate_ray((x + p.x)/frameBuffer.w, (y + p.y)/frameBuffer.h));
       }
-      result *= 1.0 / num_samples;
+      result = 1.0 / num_samples * result;
     }
     return result;
   }
