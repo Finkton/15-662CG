@@ -168,6 +168,7 @@ bool BVHAccel::intersect(const Ray &ray) const {
   // Implement ray - bvh aggregate intersection test. A ray intersects
   // with a BVH aggregate if and only if it intersects a primitive in
   // the BVH that is not an aggregate.
+  std::cout<<"intersect!"<<std::endl;
   bool hit = false;
   for (size_t p = 0; p < primitives.size(); ++p) {
     if(primitives[p]->intersect(ray)) hit = true;
@@ -185,20 +186,50 @@ bool BVHAccel::intersect(const Ray &ray, Intersection *i) const {
   // the BVH that is not an aggregate. When an intersection does happen.
   // You should store the non-aggregate primitive in the intersection data
   // and not the BVH aggregate itself.
-
+  // std::cout<<"intersect2!"<<std::endl;
   bool hit = false;
   for (size_t p = 0; p < primitives.size(); ++p) {
     if(primitives[p]->intersect(ray, i)) hit = true;
   }
 
-  return hit;
+  Intersection in;
+  find_closest_hit(ray,root,&in);
+  bool hitn = !(in.primitive == NULL);
+  // std::cout<<"hit: "<<hit<<"\thitn: "<<hitn<<std::endl;
+
+  // return hit;
+  return hitn;
+
+  // find_closest_hit(ray,root,i);
+  // return !(i->primitive == NULL);
 
 }
 
-void find_closest_hit(Ray& r, BVHNode* node, Intersection* i){
-
-
-
+void BVHAccel::find_closest_hit(const Ray& r, BVHNode* node, Intersection* i) const{
+  // std::cout<< "find_closest_hit"<<std::endl;
+  double t0 = 0, t1 = INF_D;
+  if(!node->bb.intersect(r,t0,t1) || t0 > i->t){ // closest point farther than i point
+    return;
+  }
+  std::cout<< "find_closest_hit"<<std::endl;
+  if(node->isLeaf()){
+    for(size_t j = node->start; j < node->start + node->range; j++){
+      Intersection isect;
+      bool hit = primitives[j]->intersect(r,&isect);
+      if(hit && isect.t > i->t ){
+        std::cout<<"true!"<<std::endl;
+        hit = true;
+        i->n = isect.n;
+        i->bsdf = isect.bsdf;
+        i->primitive = isect.primitive;
+        i->t = isect.t;
+      }
+    }
+  }
+  else{
+    find_closest_hit(r,node->l,i);
+    find_closest_hit(r,node->r,i);
+  }
 }
 
 }  // namespace StaticScene

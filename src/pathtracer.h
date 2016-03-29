@@ -57,7 +57,7 @@ class PathTracer {
    * Default constructor.
    * Creates a new pathtracer instance.
    */
-  PathTracer(size_t ns_aa = 1, 
+  PathTracer(size_t ns_aa = 1,
              size_t max_ray_depth = 4, size_t ns_area_light = 1,
              size_t ns_diff = 1, size_t ns_glsy = 1, size_t ns_refr = 1,
              size_t num_threads = 1,
