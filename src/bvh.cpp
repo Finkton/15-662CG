@@ -168,13 +168,15 @@ bool BVHAccel::intersect(const Ray &ray) const {
   // Implement ray - bvh aggregate intersection test. A ray intersects
   // with a BVH aggregate if and only if it intersects a primitive in
   // the BVH that is not an aggregate.
-  std::cout<<"intersect!"<<std::endl;
-  bool hit = false;
-  for (size_t p = 0; p < primitives.size(); ++p) {
-    if(primitives[p]->intersect(ray)) hit = true;
-  }
-
-  return hit;
+  // std::cout<<"intersect!"<<std::endl;
+  // bool hit = false;
+  // for (size_t p = 0; p < primitives.size(); ++p) {
+  //   if(primitives[p]->intersect(ray)) hit = true;
+  // }
+  //
+  // return hit;
+  Intersection i;
+  return find_closest_hit(ray, root, &i);
 
 }
 
@@ -187,48 +189,41 @@ bool BVHAccel::intersect(const Ray &ray, Intersection *i) const {
   // You should store the non-aggregate primitive in the intersection data
   // and not the BVH aggregate itself.
   // std::cout<<"intersect2!"<<std::endl;
-  bool hit = false;
-  for (size_t p = 0; p < primitives.size(); ++p) {
-    if(primitives[p]->intersect(ray, i)) hit = true;
-  }
-
-  Intersection in;
-  find_closest_hit(ray,root,&in);
-  bool hitn = !(in.primitive == NULL);
-  // std::cout<<"hit: "<<hit<<"\thitn: "<<hitn<<std::endl;
-
+  // bool hit = false;
+  // for (size_t p = 0; p < primitives.size(); ++p) {
+  //   if(primitives[p]->intersect(ray, i)) hit = true;
+  // }
+  //
   // return hit;
-  return hitn;
 
-  // find_closest_hit(ray,root,i);
-  // return !(i->primitive == NULL);
+  return find_closest_hit(ray,root,i);
 
 }
 
-void BVHAccel::find_closest_hit(const Ray& r, BVHNode* node, Intersection* i) const{
+bool BVHAccel::find_closest_hit(const Ray& r, BVHNode* node, Intersection* i) const{
   // std::cout<< "find_closest_hit"<<std::endl;
-  double t0 = 0, t1 = INF_D;
+  double t0 = r.min_t;
+  double t1 = r.max_t;
   if(!node->bb.intersect(r,t0,t1) || t0 > i->t){ // closest point farther than i point
-    return;
+    return false;
   }
-  std::cout<< "find_closest_hit"<<std::endl;
-  if(node->isLeaf()){
-    for(size_t j = node->start; j < node->start + node->range; j++){
-      Intersection isect;
-      bool hit = primitives[j]->intersect(r,&isect);
-      if(hit && isect.t > i->t ){
-        std::cout<<"true!"<<std::endl;
+  // std::cout<< "find_closest_hit"<<std::endl;
+  if (node->isLeaf()) {
+    bool hit = false;
+    for (size_t p = node->start; p < node->start + node->range; p++) {
+      Intersection currenti;
+      if (primitives[p]->intersect(r, &currenti) && currenti.t < i->t) {
         hit = true;
-        i->n = isect.n;
-        i->bsdf = isect.bsdf;
-        i->primitive = isect.primitive;
-        i->t = isect.t;
+        i->n = currenti.n;
+        i->bsdf = currenti.bsdf;
+        i->primitive = currenti.primitive;
+        i->t = currenti.t;
       }
     }
+    return hit;
   }
-  else{
-    find_closest_hit(r,node->l,i);
-    find_closest_hit(r,node->r,i);
+  else {
+    return find_closest_hit(r, node->r, i) || find_closest_hit(r, node->l, i);;
   }
 }
 

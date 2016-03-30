@@ -95,7 +95,7 @@ class BVHAccel : public Aggregate {
              false otherwise
    */
   bool intersect(const Ray& r, Intersection* i) const;
-  void find_closest_hit(const Ray& r, BVHNode* node, Intersection* i) const;
+  bool find_closest_hit(const Ray& r, BVHNode* node, Intersection* i) const;
 
   /**
    * Get BSDF of the surface material

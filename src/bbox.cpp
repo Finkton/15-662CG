@@ -7,15 +7,56 @@
 
 namespace CMU462 {
 
-bool BBox::intersect(const Ray& r, double& t0, double& t1) const {
+  template <typename T>
+  const T min3(const T a, const T b, const T c)
+  {
+    return std::min(a, std::min(b, c));
+  }
 
+  template <typename T>
+  const T max3(const T a, const T b, const T c)
+  {
+    return std::max(a, std::max(b, c));
+  }
+
+bool BBox::intersect(const Ray& r, double& t0, double& t1) const {
   // TODO:
   // Implement ray - bounding box intersection test
   // If the ray intersected the bouding box within the range given by
   // t0, t1, update t0 and t1 with the new intersection times.
 
-  return false;
-  
+  double tminx, tmaxx, tminy, tmaxy, tminz, tmaxz;
+
+  double tmin, tmax;
+
+  tminx = (min.x - r.o.x) * r.inv_d.x;
+  tmaxx = (max.x - r.o.x) * r.inv_d.x;
+
+  tmin = std::min(tminx, tmaxx);
+  tmax = std::max(tminx, tmaxx);
+
+  tminy = (min.y - r.o.y) * r.inv_d.y;
+  tmaxy = (max.y - r.o.y) * r.inv_d.y;
+
+  tmin = std::max(tmin, std::min(tminy, tmaxy));
+  tmax = std::min(tmax, std::max(tminy, tmaxy));
+
+  tminz = (min.z - r.o.z) * r.inv_d.z;
+  tmaxz = (max.z - r.o.z) * r.inv_d.z;
+
+  tmin = std::max(tmin, std::min(tminz, tmaxz));
+  tmax = std::min(tmax, std::max(tminz, tmaxz));
+
+  if (tmax >= tmin && tmin >= t0) {
+    t0 = tmin;
+    t1 = tmax;
+    return true;
+  } else if (tmax >= tmin && tmin < 0) {
+    t1 = tmax;
+    return true;
+  } else {
+    return false;
+  }
 }
 
 void BBox::draw(Color c) const {
