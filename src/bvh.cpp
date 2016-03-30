@@ -202,8 +202,7 @@ bool BVHAccel::intersect(const Ray &ray, Intersection *i) const {
 
 bool BVHAccel::find_closest_hit(const Ray& r, BVHNode* node, Intersection* i) const{
   // std::cout<< "find_closest_hit"<<std::endl;
-  double t0 = r.min_t;
-  double t1 = r.max_t;
+  double t0 = r.min_t, t1 = r.max_t;
   if(!node->bb.intersect(r,t0,t1) || t0 > i->t){ // closest point farther than i point
     return false;
   }
