@@ -56,7 +56,7 @@ class BVHAccel : public Aggregate {
    */
 
   BVHAccel(const std::vector<Primitive*>& primitives, size_t max_leaf_size = 4);
-  void buildTree(BVHNode *root, size_t start, size_t range, size_t max_leaf_size);
+  void buildTree(BVHNode *root, size_t start, size_t end, size_t max_leaf_size);
 
   /**
    * Destructor.

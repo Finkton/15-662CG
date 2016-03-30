@@ -32,8 +32,8 @@ BVHAccel::BVHAccel(const std::vector<Primitive *> &_primitives,
 }
 
 
-void BVHAccel::buildTree(BVHNode *root, size_t start, size_t range, size_t max_leaf_size){
-  if (range <= max_leaf_size) return;
+void BVHAccel::buildTree(BVHNode *root, size_t start, size_t end, size_t max_leaf_size){
+  if (end - start <= max_leaf_size) return;
 
   double minCost = std::numeric_limits<double>::infinity();
   enum axis { N, X, Y, Z } minAxis = N;
@@ -42,7 +42,7 @@ void BVHAccel::buildTree(BVHNode *root, size_t start, size_t range, size_t max_l
   BBox minRight;
 
   double sn = root->bb.surface_area();
-   for (size_t i = start; i < start+range; i++) {
+   for (size_t i = start; i < end; i++) {
      double xvalue = primitives[i]->get_bbox().centroid().x;
      BBox xleft=BBox();
      BBox xright=BBox();
@@ -55,7 +55,7 @@ void BVHAccel::buildTree(BVHNode *root, size_t start, size_t range, size_t max_l
      BBox zleft=BBox();
      BBox zright=BBox();
 
-     for (size_t j = start; j < start+range; j++) {
+     for (size_t j = start; j < end; j++) {
        if (xvalue > primitives[j]->get_bbox().centroid().x) {
          xleft.expand(primitives[j]->get_bbox());
        }
@@ -119,21 +119,21 @@ void BVHAccel::buildTree(BVHNode *root, size_t start, size_t range, size_t max_l
  std::vector<Primitive*>::iterator bound;
  if(minAxis == X){
    bound = std::vector<Primitive*>::iterator(
-     std::partition(&primitives[start], &primitives[start+range],
+     std::partition(&primitives[start], &primitives[end],
                     [minValue](Primitive *p) -> bool {
                       return minValue > p->get_bbox().centroid().x;
                     }));
  }
  else if(minAxis == Y){
    bound = std::vector<Primitive*>::iterator(
-     std::partition(&primitives[start], &primitives[start+range],
+     std::partition(&primitives[start], &primitives[end],
                     [minValue](Primitive *p) -> bool {
                       return minValue > p->get_bbox().centroid().y;
                     }));
  }
  else if(minAxis == Z){
    bound = std::vector<Primitive*>::iterator(
-     std::partition(&primitives[start], &primitives[start+range],
+     std::partition(&primitives[start], &primitives[end],
                     [minValue](Primitive *p) -> bool {
                       return minValue > p->get_bbox().centroid().z;
                     }));
@@ -145,10 +145,10 @@ void BVHAccel::buildTree(BVHNode *root, size_t start, size_t range, size_t max_l
  size_t mid = bound - primitives.begin();
 
  root->l = new BVHNode(minLeft, start, mid - start);
- root->r = new BVHNode(minRight, mid, range - (mid - start));
+ root->r = new BVHNode(minRight, mid, end - mid));
 
  buildTree(root->l, start, mid - start, max_leaf_size);
- buildTree(root->r, mid, range - (mid - start), max_leaf_size);
+ buildTree(root->r, mid, end - mid, max_leaf_size);
 }
 
 BVHAccel::~BVHAccel() {

@@ -19,6 +19,14 @@ namespace CMU462 {
     return std::max(a, std::max(b, c));
   }
 
+  template <typename T>
+  void swap(T &a, T &b){
+    T temp;
+    temp = a;
+    a = b;
+    b = temp;
+  }
+
 bool BBox::intersect(const Ray& r, double& t0, double& t1) const {
   // TODO:
   // Implement ray - bounding box intersection test
@@ -27,20 +35,17 @@ bool BBox::intersect(const Ray& r, double& t0, double& t1) const {
   double tminx, tmaxx, tminy, tmaxy, tminz, tmaxz;
   double tmin, tmax;
 
-  tmin = (min.x - r.o.x) / r.d.x;
-  tmax = (max.x - r.o.x) / r.d.x;
-  tminx = std::min(tmin, tmax);
-  tmaxx = std::max(tmin, tmax);
+  tminx = (min.x - r.o.x) / r.d.x;
+  tmaxx = (max.x - r.o.x) / r.d.x;
+  if(tminx > tmaxx) swap(tminx,tmaxx);
 
-  tmin = (min.y - r.o.y) / r.d.y;
-  tmax = (max.y - r.o.y) / r.d.y;
-  tminy = std::min(tmin, tmax);
-  tmaxy = std::max(tmin, tmax);
+  tminy = (min.y - r.o.y) / r.d.y;
+  tmaxy = (max.y - r.o.y) / r.d.y;
+  if(tminy > tmaxy) swap(tminy,tmaxy);
 
-  tmin = (min.z - r.o.z) / r.d.z;
-  tmax = (max.z - r.o.z) / r.d.z;
-  tminz = std::min(tmin, tmax);
-  tmaxz = std::max(tmin, tmax);
+  tminz = (min.z - r.o.z) / r.d.z;
+  tmaxz = (max.z - r.o.z) / r.d.z;
+  if(tminz > tmaxz) swap(tminz,tmaxz);
 
   tmin = max3(tminx,tminy,tminz);
   tmax = min3(tmaxx,tmaxy,tmaxz);
