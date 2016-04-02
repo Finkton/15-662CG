@@ -174,7 +174,7 @@ bool BVHAccel::intersect(const Ray &ray) const {
   //   if(primitives[p]->intersect(ray)) hit = true;
   // }
   //
-  // return hit;
+  return hit;
   Intersection i;
   return find_closest_hit(ray, root, &i);
 
@@ -204,6 +204,7 @@ bool BVHAccel::find_closest_hit(const Ray& r, BVHNode* node, Intersection* i) co
   // std::cout<< "find_closest_hit"<<std::endl;
   double t0 = r.min_t, t1 = r.max_t;
   if(!node->bb.intersect(r,t0,t1) || t0 > i->t){ // closest point farther than i point
+    // return;
     return false;
   }
   // std::cout<< "find_closest_hit"<<std::endl;
@@ -222,7 +223,10 @@ bool BVHAccel::find_closest_hit(const Ray& r, BVHNode* node, Intersection* i) co
     return hit;
   }
   else {
-    return find_closest_hit(r, node->r, i) || find_closest_hit(r, node->l, i);;
+    // return find_closest_hit(r, node->r, i) || find_closest_hit(r, node->l, i);
+    bool hit_r = find_closest_hit(r, node->r, i);
+    bool hit_l = find_closest_hit(r, node->l, i);
+    return hit_r || hit_l;
   }
 }
 
