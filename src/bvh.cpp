@@ -33,7 +33,7 @@ BVHAccel::BVHAccel(const std::vector<Primitive *> &_primitives,
 
 
 void BVHAccel::buildTree(BVHNode *root, size_t start, size_t end, size_t max_leaf_size){
-  if (end - start <= max_leaf_size) return;
+  if ( end - start <= max_leaf_size) return;
 
   double minCost = std::numeric_limits<double>::infinity();
   enum axis { N, X, Y, Z } minAxis = N;
@@ -145,10 +145,10 @@ void BVHAccel::buildTree(BVHNode *root, size_t start, size_t end, size_t max_lea
  size_t mid = bound - primitives.begin();
 
  root->l = new BVHNode(minLeft, start, mid - start);
- root->r = new BVHNode(minRight, mid, end - mid));
+ root->r = new BVHNode(minRight, mid, end - mid);
 
- buildTree(root->l, start, mid - start, max_leaf_size);
- buildTree(root->r, mid, end - mid, max_leaf_size);
+ buildTree(root->l, start, mid, max_leaf_size);
+ buildTree(root->r, mid, end, max_leaf_size);
 }
 
 BVHAccel::~BVHAccel() {
