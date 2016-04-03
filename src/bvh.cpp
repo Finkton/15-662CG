@@ -44,16 +44,13 @@ void BVHAccel::buildTree(BVHNode *root, size_t start, size_t end, size_t max_lea
   double sn = root->bb.surface_area();
    for (size_t i = start; i < end; i++) {
      double xvalue = primitives[i]->get_bbox().centroid().x;
-     BBox xleft=BBox();
-     BBox xright=BBox();
+     BBox xleft=BBox(), xright=BBox();
 
      double yvalue = primitives[i]->get_bbox().centroid().y;
-     BBox yleft=BBox();
-     BBox yright=BBox();
+     BBox yleft=BBox(), yright=BBox();
 
      double zvalue = primitives[i]->get_bbox().centroid().z;
-     BBox zleft=BBox();
-     BBox zright=BBox();
+     BBox zleft=BBox(), zright=BBox();
 
      for (size_t j = start; j < end; j++) {
        if (xvalue > primitives[j]->get_bbox().centroid().x) {
@@ -168,6 +165,7 @@ bool BVHAccel::intersect(const Ray &ray) const {
   // Implement ray - bvh aggregate intersection test. A ray intersects
   // with a BVH aggregate if and only if it intersects a primitive in
   // the BVH that is not an aggregate.
+
   // std::cout<<"intersect!"<<std::endl;
   // bool hit = false;
   // for (size_t p = 0; p < primitives.size(); ++p) {
@@ -175,6 +173,7 @@ bool BVHAccel::intersect(const Ray &ray) const {
   // }
   //
   // return hit;
+
   Intersection i;
   return find_closest_hit(ray, root, &i);
 
@@ -188,6 +187,7 @@ bool BVHAccel::intersect(const Ray &ray, Intersection *i) const {
   // the BVH that is not an aggregate. When an intersection does happen.
   // You should store the non-aggregate primitive in the intersection data
   // and not the BVH aggregate itself.
+
   // std::cout<<"intersect2!"<<std::endl;
   // bool hit = false;
   // for (size_t p = 0; p < primitives.size(); ++p) {
@@ -204,7 +204,6 @@ bool BVHAccel::find_closest_hit(const Ray& r, BVHNode* node, Intersection* i) co
   // std::cout<< "find_closest_hit"<<std::endl;
   double t0 = r.min_t, t1 = r.max_t;
   if(!node->bb.intersect(r,t0,t1) || t0 > i->t){ // closest point farther than i point
-    // return;
     return false;
   }
   // std::cout<< "find_closest_hit"<<std::endl;

@@ -14,7 +14,22 @@ bool Sphere::test(const Ray& r, double& t1, double& t2) const {
   // Return true if there are intersections and writing the
   // smaller of the two intersection times in t1 and the larger in t2.
 
-  return false;
+
+    Vector3D oc = r.o - this->o;
+    double a = r.d.norm2();
+    double b = 2*dot(r.d,oc);
+    double c = oc.norm2() - this->r * this->r;
+
+    double delta = (b * b)/4.f - a * c;
+
+    if(delta < 0) return false;
+
+    t1 = (-(b/2.f) - sqrt(delta)) / a;
+    t2 = (-(b/2.f) + sqrt(delta)) / a;
+
+    return t2>0;
+
+  // return false;
 
 }
 
@@ -24,7 +39,14 @@ bool Sphere::intersect(const Ray& r) const {
   // Implement ray - sphere intersection.
   // Note that you might want to use the the Sphere::test helper here.
 
-  return false;
+  double t1, t2;
+  if (!test(r, t1, t2) || t1 < r.min_t || t1 > r.max_t || t2 < r.min_t || t2 > r.max_t ){
+    return false;
+  }
+  else{
+    return true;
+  }
+  // return false;
 
 }
 
@@ -35,9 +57,19 @@ bool Sphere::intersect(const Ray& r, Intersection *i) const {
   // Note again that you might want to use the the Sphere::test helper here.
   // When an intersection takes place, the Intersection data should be updated
   // correspondingly.
+  double t1, t2;
+  bool hit = test(r, t1, t2);
 
-  return false;
-
+  if (!hit){
+    return false;
+  }
+  else{
+    i->primitive = this;
+    i->bsdf = this->get_bsdf();
+    i->t = t1;
+    i->n = normal(r.o + t1 * r.d);
+    return true;
+  }
 }
 
 void Sphere::draw(const Color& c) const {
