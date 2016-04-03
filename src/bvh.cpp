@@ -174,7 +174,7 @@ bool BVHAccel::intersect(const Ray &ray) const {
   //   if(primitives[p]->intersect(ray)) hit = true;
   // }
   //
-  return hit;
+  // return hit;
   Intersection i;
   return find_closest_hit(ray, root, &i);
 
