@@ -36,7 +36,9 @@ Spectrum DiffuseBSDF::f(const Vector3D& wo, const Vector3D& wi) {
 }
 
 Spectrum DiffuseBSDF::sample_f(const Vector3D& wo, Vector3D* wi, float* pdf) {
-  return Spectrum();
+  *wi = this->sampler.get_sample(pdf);
+  return albedo * (1.0 / PI);
+  // return Spectrum();
 }
 
 // Mirror BSDF //

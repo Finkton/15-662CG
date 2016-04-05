@@ -427,7 +427,7 @@ Spectrum PathTracer::trace_ray(const Ray &r) {
   // indirect lighting components calculated in the code below. The starter
   // code overwrites L_out by (.5,.5,.5) so that you can test your geometry
   // queries before you implement path tracing.
-  L_out = Spectrum(0.f, 0.f, 0.f);
+  // L_out = Spectrum(0.f, 0.f, 0.f);
 
   Vector3D hit_p = r.o + r.d * isect.t;
   Vector3D hit_n = isect.n;
@@ -450,15 +450,15 @@ Spectrum PathTracer::trace_ray(const Ray &r) {
   // InfiniteHemisphereLight light(Spectrum(5.f, 5.f, 5.f));
   //DirectionalLight light(Spectrum(5.f, 5.f, 5.f), Vector3D(1.0, -1.0, 0.0));
 
+  Vector3D dir_to_light;
+  float dist_to_light;
+  float pdf;
+
   // for (auto light = (scene->lights).begin();light!=(scene->lights).end();light++){
     // SceneLight *light = &(it);
   for ( auto light:scene->lights ) {
-
-      Vector3D dir_to_light;
-      float dist_to_light;
-      float pdf;
-
       // no need to take multiple samples from a directional source
+      // int num_light_samples = light.is_delta_light() ? 1 : ns_area_light;
       int num_light_samples = light->is_delta_light() ? 1 : ns_area_light;
 
       // integrate light over the hemisphere about the normal
@@ -470,6 +470,7 @@ Spectrum PathTracer::trace_ray(const Ray &r) {
           // the distance from point x to this point on the light source.
           // (pdf is the probability of randomly selecting the random
           // sample point on the light source -- more on this in part 2)
+          // Spectrum light_L = light.sample_L(hit_p, &dir_to_light, &dist_to_light, &pdf);
           Spectrum light_L = light->sample_L(hit_p, &dir_to_light, &dist_to_light, &pdf);
 
           // convert direction into coordinate space of the surface, where
@@ -492,13 +493,15 @@ Spectrum PathTracer::trace_ray(const Ray &r) {
           Ray shadow_ray = Ray(origin, dir_to_light,dist_to_light,0);
 
           Intersection isect;
-          bool shadow = bvh->intersect(shadow_ray,&isect);
+          isect.t = dist_to_light;
+          // bool shadow = bvh->intersect(shadow_ray,&isect);
           if(!bvh->intersect(shadow_ray,&isect)){
           // if(!shadow){
-            // std::cout<<"No shadow!"<<std::endl;
-            L_out +=  f * light_L * (cos_theta / pdf) * scale;
+            // std::cout<<"No shadow!"<<std::endl;s
+            L_out +=  f * light_L * (cos_theta / pdf);
           }
       }
+      L_out *= scale;
   }
 
   // TODO:
