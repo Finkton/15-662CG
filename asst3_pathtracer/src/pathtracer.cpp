@@ -24,6 +24,13 @@ using std::max;
 
 namespace CMU462 {
 
+float RandomFloat(float a, float b) {
+      float random = ((float) rand()) / (float) RAND_MAX;
+      float diff = b - a;
+      float r = random * diff;
+      return a + r;
+  }
+
 //#define ENABLE_RAY_LOGGING 1
 
 PathTracer::PathTracer(size_t ns_aa,
@@ -397,7 +404,12 @@ void PathTracer::key_press(int key) {
   }
 }
 
-Spectrum PathTracer::trace_ray(const Ray &r) {
+Spectrum PathTracer::trace_ray(const Ray &r){
+  // return trace_ray(r,true);
+}
+
+Spectrum PathTracer::trace_ray(const Ray &r, bool flagLe) {
+  // this->max_ray_depth = 10;
 
   Intersection isect;
 
@@ -420,7 +432,13 @@ Spectrum PathTracer::trace_ray(const Ray &r) {
   log_ray_hit(r, isect.t);
   #endif
 
-  Spectrum L_out = isect.bsdf->get_emission(); // Le
+  Spectrum L_out; //Le
+  if(flagLe){
+      L_out = isect.bsdf->get_emission(); // Le
+  }
+  else{
+      L_out = Spectrum();
+  }
 
   // TODO :
   // Instead of initializing this value to a constant color, use the direct,
@@ -494,13 +512,10 @@ Spectrum PathTracer::trace_ray(const Ray &r) {
 
           Intersection isect;
           isect.t = dist_to_light;
-          // bool shadow = bvh->intersect(shadow_ray,&isect);
           if(bvh->intersect(shadow_ray,&isect)){
-          // if(!shadow){
-            // std::cout<<"Shadow!"<<std::endl;s
             continue;
           }
-          L_out +=  f * light_L * (cos_theta / pdf);
+          L_out +=  light_L * f * (cos_theta / pdf);
       }
       L_out *= scale;
   }
@@ -509,8 +524,30 @@ Spectrum PathTracer::trace_ray(const Ray &r) {
   // Compute an indirect lighting estimate using pathtracing with Monte Carlo.
   // Note that Ray objects have a depth field now; you should use this to avoid
   // traveling down one path forever.
+  if(r.depth > max_ray_depth){
+    return L_out;
+  }
+  {
+    Vector3D wi;
+    // float pdf;
+    Spectrum L_r = isect.bsdf->sample_f(w_out, &wi, &pdf);
+    float terminateProbability = 1.f - L_r.illum();
+    // termination probability based on reflectance (averaged over spectrum).
+    // Lower reflectance = high chance of terminating
+    terminateProbability = clamp(terminateProbability,0.f,1.f);
+    if(((float) rand()) / (float) RAND_MAX < terminateProbability){
+      // std::cout<<"no";
+      return L_out;
+    }
 
-  return L_out;
+    wi = (o2w * wi).unit();
+    Ray indRay = Ray(hit_p + wi*EPS_D, wi);
+    indRay.depth = r.depth + 1;
+    // std::cout<<"m"<<this->max_ray_depth<<"t"<<indRay.depth<<" ";
+
+    return L_out + ((L_r * trace_ray(indRay,isect.bsdf->is_delta()) * fabs(dot(wi,hit_n))) * (1.f / (pdf * (1.f - terminateProbability))));
+    // return L_out;
+  }
 }
 
 Spectrum PathTracer::raytrace_pixel(size_t x, size_t y) {
@@ -525,12 +562,12 @@ Spectrum PathTracer::raytrace_pixel(size_t x, size_t y) {
     Spectrum result = Spectrum(0.0f,0.0f,0.0f);
 
     if(num_samples==1){
-      result = trace_ray(camera->generate_ray((x + 0.5)/frameBuffer.w, (y + 0.5)/frameBuffer.h));
+      result = trace_ray(camera->generate_ray((x + 0.5)/frameBuffer.w, (y + 0.5)/frameBuffer.h),true);
     }
     else{
       for(int i=0;i<num_samples;i++){
         Vector2D p = gridSampler->get_sample();
-        result += trace_ray(camera->generate_ray((x + p.x)/frameBuffer.w, (y + p.y)/frameBuffer.h));
+        result += trace_ray(camera->generate_ray((x + p.x)/frameBuffer.w, (y + p.y)/frameBuffer.h),true);
       }
       result = 1.0 / num_samples * result;
     }
