@@ -405,10 +405,10 @@ void PathTracer::key_press(int key) {
 }
 
 Spectrum PathTracer::trace_ray(const Ray &r){
-  // return trace_ray(r,true);
+  return trace_ray(r,true);
 }
 
-Spectrum PathTracer::trace_ray(const Ray &r, bool flagLe) {
+Spectrum PathTracer::trace_ray(const Ray &r, bool isDelta) {
   // this->max_ray_depth = 10;
 
   Intersection isect;
@@ -433,8 +433,8 @@ Spectrum PathTracer::trace_ray(const Ray &r, bool flagLe) {
   #endif
 
   Spectrum L_out; //Le
-  if(flagLe){
-      L_out = isect.bsdf->get_emission(); // Le
+  if(isDelta){ // is delta distribution -
+      L_out = isect.bsdf->get_emission();
   }
   else{
       L_out = Spectrum();
@@ -531,10 +531,9 @@ Spectrum PathTracer::trace_ray(const Ray &r, bool flagLe) {
     Vector3D wi;
     // float pdf;
     Spectrum L_r = isect.bsdf->sample_f(w_out, &wi, &pdf);
-    float terminateProbability = 1.f - L_r.illum();
     // termination probability based on reflectance (averaged over spectrum).
     // Lower reflectance = high chance of terminating
-    terminateProbability = clamp(terminateProbability,0.f,1.f);
+    float terminateProbability = 1.f - clamp(L_r.illum(),0.f,1.f);
     if(((float) rand()) / (float) RAND_MAX < terminateProbability){
       // std::cout<<"no";
       return L_out;
@@ -562,12 +561,12 @@ Spectrum PathTracer::raytrace_pixel(size_t x, size_t y) {
     Spectrum result = Spectrum(0.0f,0.0f,0.0f);
 
     if(num_samples==1){
-      result = trace_ray(camera->generate_ray((x + 0.5)/frameBuffer.w, (y + 0.5)/frameBuffer.h),true);
+      result = trace_ray(camera->generate_ray((x + 0.5)/frameBuffer.w, (y + 0.5)/frameBuffer.h));
     }
     else{
       for(int i=0;i<num_samples;i++){
-        Vector2D p = gridSampler->get_sample();
-        result += trace_ray(camera->generate_ray((x + p.x)/frameBuffer.w, (y + p.y)/frameBuffer.h),true);
+        Vector2D sample = gridSampler->get_sample();
+        result += trace_ray(camera->generate_ray((x + sample.x)/frameBuffer.w, (y + sample.y)/frameBuffer.h));
       }
       result = 1.0 / num_samples * result;
     }

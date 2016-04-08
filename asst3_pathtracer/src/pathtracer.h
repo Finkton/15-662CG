@@ -165,7 +165,7 @@ class PathTracer {
    * Trace an ray in the scene.
    */
   Spectrum trace_ray(const Ray& ray);
-  Spectrum trace_ray(const Ray& ray,bool flagLe);
+  Spectrum trace_ray(const Ray& ray,bool isDelta);
 
   /**
    * Trace a camera ray given by the pixel coordinate.
