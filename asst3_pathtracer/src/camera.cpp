@@ -122,8 +122,7 @@ Ray Camera::generate_ray(double x, double y) const {
     // std::cout<<"tan: "<<radians(hFov/2.0f)<<" MI: "<< (hFov * M_PI / 180.0 / 2)<<std::endl;
     // std::cout<<"tan: "<<radians(vFov/2.0f)<<" MI: "<< (vFov * M_PI / 180.0 / 2)<<std::endl;
 
-    Vector3D direction = c2w * Vector3D(xc,yc,-1);
-    direction.normalize();
+    Vector3D direction = (c2w * Vector3D(xc,yc,-1)).unit();
 
     Ray ray = Ray(this->pos,direction);
     ray.min_t = 0;

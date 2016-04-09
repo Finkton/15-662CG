@@ -9,10 +9,10 @@ Vector2D UniformGridSampler2D::get_sample() const {
   // TODO:
   // Implement uniform 2D grid sampler
 
-  double x = (double)(std::rand()) / RAND_MAX;
-  double y = (double)(std::rand()) / RAND_MAX;
+  double Xi1 = (double)(std::rand()) / RAND_MAX;
+  double Xi2 = (double)(std::rand()) / RAND_MAX;
 
-  return Vector2D(x,y);
+  return Vector2D(Xi1,Xi2);
   // return Vector2D(0.5,0.5);
 
 }
@@ -42,14 +42,11 @@ Vector3D CosineWeightedHemisphereSampler3D::get_sample() const {
 
 Vector3D CosineWeightedHemisphereSampler3D::get_sample(float *pdf) const {
   // You may implement this, but don't have to.
-  double Xi1 = (double)(std::rand()) / RAND_MAX;
-  double Xi2 = (double)(std::rand()) / RAND_MAX;
+  double Xi1 = (double)(std::rand()) / RAND_MAX; // Latitude
+  double Xi2 = (double)(std::rand()) / RAND_MAX; // Longtitude
 
   double theta = acos(sqrt(1.0-Xi1));
   double phi = 2.0 * PI * Xi2;
-
-  // the probability of randomly selecting the random
-  *pdf = cos(theta) / PI;
 
   double xs = sinf(theta) * cosf(phi);
   double ys = cosf(theta);
@@ -68,6 +65,8 @@ Vector3D CosineWeightedHemisphereSampler3D::get_sample(float *pdf) const {
   Vector3D z = cross(x,y).unit();
 
   Vector3D direction = xs * x + ys * y + zs * z;
+
+  *pdf = 1.0 / (2.0 * PI);
   return direction.unit();
   // return Vector3D(0, 0, 1);
 }

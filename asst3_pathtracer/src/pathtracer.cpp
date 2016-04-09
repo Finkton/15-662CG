@@ -426,18 +426,22 @@ Spectrum PathTracer::trace_ray(const Ray &r, bool isDelta) {
 
     return Spectrum(0,0,0);
   }
-
   // log ray hit
   #ifdef ENABLE_RAY_LOGGING
   log_ray_hit(r, isect.t);
   #endif
 
+  // Spectrum L_out = isect.bsdf->get_emission(); //Le
   Spectrum L_out; //Le
   if(isDelta){ // is delta distribution -
       L_out = isect.bsdf->get_emission();
   }
   else{
       L_out = Spectrum();
+  }
+
+  if(r.depth > max_ray_depth){
+    return L_out;
   }
 
   // TODO :
@@ -524,9 +528,6 @@ Spectrum PathTracer::trace_ray(const Ray &r, bool isDelta) {
   // Compute an indirect lighting estimate using pathtracing with Monte Carlo.
   // Note that Ray objects have a depth field now; you should use this to avoid
   // traveling down one path forever.
-  if(r.depth > max_ray_depth){
-    return L_out;
-  }
   {
     Vector3D wi;
     // float pdf;
@@ -540,7 +541,7 @@ Spectrum PathTracer::trace_ray(const Ray &r, bool isDelta) {
     }
 
     wi = (o2w * wi).unit();
-    Ray indRay = Ray(hit_p + wi*EPS_D, wi);
+    Ray indRay = Ray(hit_p + wi * EPS_D, wi);
     indRay.depth = r.depth + 1;
     // std::cout<<"m"<<this->max_ray_depth<<"t"<<indRay.depth<<" ";
 

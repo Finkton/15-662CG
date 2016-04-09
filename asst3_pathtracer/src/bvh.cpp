@@ -35,117 +35,93 @@ BVHAccel::BVHAccel(const std::vector<Primitive *> &_primitives,
 void BVHAccel::buildTree(BVHNode *root, size_t start, size_t end, size_t max_leaf_size){
   if ( end - start <= max_leaf_size) return;
 
-  double minCost = std::numeric_limits<double>::infinity();
-  enum axis { N, X, Y, Z } minAxis = N;
-  double minValue = 0;
+  double minCost = INF_D;
+  enum axis { X=0, Y=1, Z=2, N=3 } minAxis = N;
+  double minCoor = 0;
   BBox minLeft;
   BBox minRight;
 
   double sn = root->bb.surface_area();
    for (size_t i = start; i < end; i++) {
-     double xvalue = primitives[i]->get_bbox().centroid().x;
-     BBox xleft=BBox(), xright=BBox();
+     double cost[3] = {INF_D,INF_D,INF_D};
+     double coor[3];
+     BBox left[3] = {BBox(),BBox(),BBox()};
+     BBox right[3] = {BBox(),BBox(),BBox()};
+     bool update = false;
 
-     double yvalue = primitives[i]->get_bbox().centroid().y;
-     BBox yleft=BBox(), yright=BBox();
 
-     double zvalue = primitives[i]->get_bbox().centroid().z;
-     BBox zleft=BBox(), zright=BBox();
+     coor[X] = primitives[i]->get_bbox().centroid().x;
+     coor[Y] = primitives[i]->get_bbox().centroid().y;
+     coor[Z] = primitives[i]->get_bbox().centroid().z;
 
-     for (size_t j = start; j < end; j++) {
-       if (xvalue > primitives[j]->get_bbox().centroid().x) {
-         xleft.expand(primitives[j]->get_bbox());
+     for (size_t j = start; j < end; j++) { // build XYZ left right tree
+       if (coor[X] > primitives[j]->get_bbox().centroid().x) {
+         left[X].expand(primitives[j]->get_bbox());
        }
        else {
-         xright.expand(primitives[j]->get_bbox());
+         right[X].expand(primitives[j]->get_bbox());
        }
 
-       if (yvalue > primitives[j]->get_bbox().centroid().y) {
-         yleft.expand(primitives[j]->get_bbox());
-       }
-       else {
-         yright.expand(primitives[j]->get_bbox());
-       }
-
-       if (zvalue > primitives[j]->get_bbox().centroid().z) {
-         zleft.expand(primitives[j]->get_bbox());
+       if (coor[Y] > primitives[j]->get_bbox().centroid().y) {
+         left[Y].expand(primitives[j]->get_bbox());
        }
        else {
-         zright.expand(primitives[j]->get_bbox());
+         right[Y].expand(primitives[j]->get_bbox());
        }
-     } // end for j
 
-     double xcost = std::numeric_limits<double>::infinity();
-     if (xleft.size!=0 && xright.size!=0) {
-       xcost = xleft.size*(xleft.surface_area()/sn) + xright.size*(xright.surface_area()/sn);
-     }
+       if (coor[Z] > primitives[j]->get_bbox().centroid().z) {
+         left[Z].expand(primitives[j]->get_bbox());
+       }
+       else {
+         right[Z].expand(primitives[j]->get_bbox());
+       }
+     } // end build XYZ left right tree
 
-     double ycost = std::numeric_limits<double>::infinity();
-     if (yleft.size!=0 && yright.size!=0) {
-       ycost = yleft.size*(yleft.surface_area()/sn) + yright.size*(yright.surface_area()/sn);
-     }
-
-     double zcost = std::numeric_limits<double>::infinity();
-     if (zleft.size!=0 && zright.size!=0) {
-       zcost = zleft.size*(zleft.surface_area()/sn) + zright.size*(zright.surface_area()/sn);
+     if (left[X].size!=0 && right[X].size!=0) {
+       cost[X] = left[X].size*(left[X].surface_area()/sn) + right[X].size*(right[X].surface_area()/sn);
      }
 
-     if (xcost < minCost && xcost<ycost && xcost<zcost) {
-       minCost = xcost;
-       minAxis = X;
-       minValue = xvalue;
-       minLeft = xleft;
-       minRight = xright;
+     if (left[Y].size!=0 && right[Y].size!=0) {
+       cost[Y] = left[Y].size*(left[Y].surface_area()/sn) + right[Y].size*(right[Y].surface_area()/sn);
      }
-     else if (ycost < minCost && ycost<xcost && ycost<zcost) {
-       minCost = ycost;
-       minAxis = Y;
-       minValue = yvalue;
-       minLeft = yleft;
-       minRight = yright;
+
+     if (left[Z].size!=0 && right[Z].size!=0) {
+       cost[Z] = left[Z].size*(left[Z].surface_area()/sn) + right[Z].size*(right[Z].surface_area()/sn);
      }
-     else if (zcost < minCost && zcost<xcost && zcost<ycost) {
-       minCost = zcost;
-       minAxis = Z;
-       minValue = zvalue;
-       minLeft = zleft;
-       minRight = zright;
+
+     if(cost[X] < minCost || cost[Y] < minCost || cost[Z] < minCost){
+       update = true;
+       if (cost[X]<=cost[Y] && cost[X]<=cost[Z]) {
+         minAxis = X;
+       }
+       else if (cost[Y]<cost[X] && cost[Y]<=cost[Z]) {
+         minAxis = Y;
+       }
+       else if (cost[Z]<cost[X] && cost[Z]<cost[Y]) {
+         minAxis = Z;
+       }
+     }
+
+     if(update){
+       minCost = cost[minAxis];
+       minCoor = coor[minAxis];
+       minLeft = left[minAxis];
+       minRight = right[minAxis];
      }
    } // end for i
 
- std::vector<Primitive*>::iterator bound;
- if(minAxis == X){
-   bound = std::vector<Primitive*>::iterator(
-     std::partition(&primitives[start], &primitives[end],
-                    [minValue](Primitive *p) -> bool {
-                      return minValue > p->get_bbox().centroid().x;
+   auto boundit = std::vector<Primitive*>::iterator(std::stable_partition(&primitives[start], &primitives[end],
+           [minAxis,minCoor](Primitive *p) -> bool {
+                      if(minAxis == X)  return minCoor > p->get_bbox().centroid().x;
+                      if(minAxis == Y)  return minCoor > p->get_bbox().centroid().y;
+                      if(minAxis == Z)  return minCoor > p->get_bbox().centroid().z;
                     }));
- }
- else if(minAxis == Y){
-   bound = std::vector<Primitive*>::iterator(
-     std::partition(&primitives[start], &primitives[end],
-                    [minValue](Primitive *p) -> bool {
-                      return minValue > p->get_bbox().centroid().y;
-                    }));
- }
- else if(minAxis == Z){
-   bound = std::vector<Primitive*>::iterator(
-     std::partition(&primitives[start], &primitives[end],
-                    [minValue](Primitive *p) -> bool {
-                      return minValue > p->get_bbox().centroid().z;
-                    }));
- }
- else {
-   return;
- }
 
- size_t mid = bound - primitives.begin();
-
- root->l = new BVHNode(minLeft, start, mid - start);
- root->r = new BVHNode(minRight, mid, end - mid);
-
- buildTree(root->l, start, mid, max_leaf_size);
- buildTree(root->r, mid, end, max_leaf_size);
+ size_t bound = boundit - primitives.begin();
+ root->l = new BVHNode(minLeft, start, bound - start);
+ root->r = new BVHNode(minRight, bound, end - bound);
+ buildTree(root->l, start, bound, max_leaf_size);
+ buildTree(root->r, bound, end, max_leaf_size);
 }
 
 BVHAccel::~BVHAccel() {
