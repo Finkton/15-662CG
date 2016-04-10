@@ -44,6 +44,13 @@ class EnvironmentLight : public SceneLight {
 
  private:
   const HDRImageBuffer* envMap;
+
+  std::vector<double> flux;
+  std::vector<double> ptheta;
+  std::vector<double> pphitheta;
+  std::vector<double> cdftheta;
+  std::vector<double> cdfphitheta;
+
 }; // class EnvironmentLight
 
 } // namespace StaticScene

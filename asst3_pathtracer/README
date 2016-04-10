@@ -1,9 +1,6 @@
 task1:
 reference:http://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-generating-camera-rays/generating-camera-rays
 
-task3:
-113 - 120: Struggled in how to sort the primitives, then was taught by a friend to use std::partition.
-
 task5:
 CosineWeightedHemisphereSampler3D reference:https://pathtracing.wordpress.com/2011/03/03/cosine-weighted-hemisphere/
 

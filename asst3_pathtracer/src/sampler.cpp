@@ -48,9 +48,9 @@ Vector3D CosineWeightedHemisphereSampler3D::get_sample(float *pdf) const {
   double theta = acos(sqrt(1.0-Xi1));
   double phi = 2.0 * PI * Xi2;
 
-  double xs = sinf(theta) * cosf(phi);
-  double ys = cosf(theta);
-  double zs = sinf(theta) * sinf(phi);
+  double xs = sin(theta) * cos(phi);
+  double ys = cos(theta);
+  double zs = sin(theta) * sin(phi);
 
   Vector3D y = Vector3D(0.0, 0.0, 1.0);
   Vector3D h = y;
@@ -66,7 +66,7 @@ Vector3D CosineWeightedHemisphereSampler3D::get_sample(float *pdf) const {
 
   Vector3D direction = xs * x + ys * y + zs * z;
 
-  *pdf = 1.0 / (2.0 * PI);
+  *pdf = cos(theta) / PI;
   return direction.unit();
   // return Vector3D(0, 0, 1);
 }

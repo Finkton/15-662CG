@@ -53,8 +53,8 @@ Spectrum MirrorBSDF::sample_f(const Vector3D& wo, Vector3D* wi, float* pdf) {
   // TODO:
   // Implement MirrorBSDF
   reflect(wo,wi);
-  *pdf = 1;
-  return this->reflectance;
+  *pdf = 1.f;
+  return this->reflectance * (1.f / fabs(wo.z));
 }
 
 // Glossy BSDF //
@@ -97,11 +97,10 @@ Spectrum GlassBSDF::sample_f(const Vector3D& wo, Vector3D* wi, float* pdf) {
 
   // TODO:
   // Compute Fresnel coefficient and either reflect or refract based on it.
+  *pdf = 1.f;
   if (!refract(wo, wi, ior)) {
       reflect(wo, wi);
-      *pdf = 1;
-
-      return reflectance * (1 / fabs(wi->z));;
+      return this->reflectance * (1.f / fabs(wo.z));
     }
 
     double ni, nt;
@@ -114,30 +113,23 @@ Spectrum GlassBSDF::sample_f(const Vector3D& wo, Vector3D* wi, float* pdf) {
       nt = 1;
     }
 
-    double fresnel;
-    double r_par, r_per;
-
     double cosi = fabs(wo.z);
     double cost = fabs(wi->z);
 
-    r_par = ((nt*cosi) - (ni*cost)) / ((nt*cosi) + (ni*cost));
-    r_per = ((ni*cosi) - (nt*cost)) / ((ni*cosi) + (nt*cost));
+    double rpar = ((nt*cosi) - (ni*cost)) / ((nt*cosi) + (ni*cost));
+    double rver = ((ni*cosi) - (nt*cost)) / ((ni*cosi) + (nt*cost));
 
-    fresnel = 0.5 * (r_par*r_par + r_per*r_per);
+    double fresnel = (rpar*rpar + rver*rver) / 2.f;
 
-    float rand = (float)(std::rand()) / RAND_MAX;
-    bool refract = rand > ((float)fresnel);
-
-    *pdf = refract ? 1-fresnel : fresnel;
-
-    if (!refract) {
+    if((double)(std::rand()) / RAND_MAX <= fresnel){
       reflect(wo, wi);
-      return fresnel * reflectance * (1 / fabs(wi->z));
+      return this->reflectance * (1.f / fabs(wo.z));
+    }
+    else{
+      return transmittance * double((nt*nt)/(ni*ni) * (1-fresnel) / fabs(cosi));
     }
 
-    double trans_coeff = (1 - fresnel) * (nt / ni) * (nt / ni) / fabs(wi->z);
 
-    return transmittance * trans_coeff;
   // return Spectrum();
 }
 
@@ -163,9 +155,9 @@ bool BSDF::refract(const Vector3D& wo, Vector3D* wi, float ior) {
 
   // ior: the index of refraction (nt)
 
-  float cosi = wo.z;
-  float sini = sqrt(1 - cosi*cosi);
-  float nitRate; // ni/nt
+  double cosi = fabs(wo.z);
+  double sini = sqrt(1 - cosi*cosi);
+  double nitRate; // ni/nt
 
   if(wo.z>0){
     nitRate = 1.f / ior; // wi(nt) material(ior) -> wo(ni) vacuum
@@ -178,8 +170,8 @@ bool BSDF::refract(const Vector3D& wo, Vector3D* wi, float ior) {
     return false;
   }
 
-  float sint = nitRate * sini;
-  float cost = sqrt(1 - sint*sint);
+  double sint = nitRate * sini;
+  double cost = sqrt(1 - sint*sint);
 
   wi->x = - wo.x * sint / sini;
   wi->y = - wo.y * sint / sini;
