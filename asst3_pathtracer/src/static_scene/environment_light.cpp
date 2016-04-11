@@ -41,14 +41,14 @@ EnvironmentLight::EnvironmentLight(const HDRImageBuffer* envMap)
   }
 
   // CDF
-  double sum_ptheta = 0;
+  double temp1 = 0, temp2 = 0;
   for (int y = 0; y < envMap->h; y++) {
-    sum_ptheta += ptheta[y];
-    cdftheta[y] = sum_ptheta;
-    double sum_phi_theta = 0;
+    temp1 += ptheta[y];
+    cdftheta[y] = temp1;
+    temp2 = 0;
     for (int x = 0; x < envMap->w; x++) {
-      sum_phi_theta += pphitheta[x + envMap->w * y];
-      cdfphitheta[x + envMap->w * y] = sum_phi_theta;
+      temp2 += pphitheta[x + envMap->w * y];
+      cdfphitheta[x + envMap->w * y] = temp2;
     }
   }
 
